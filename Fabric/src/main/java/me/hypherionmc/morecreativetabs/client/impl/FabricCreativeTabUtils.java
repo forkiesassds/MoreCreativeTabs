@@ -1,8 +1,10 @@
 package me.hypherionmc.morecreativetabs.client.impl;
 
+import me.hypherionmc.morecreativetabs.mixin.accessor.CreativeModeTabsAccessor;
 import net.fabricmc.fabric.impl.client.itemgroup.FabricCreativeGuiComponents;
 import net.fabricmc.fabric.impl.itemgroup.FabricItemGroup;
 import net.fabricmc.fabric.mixin.itemgroup.ItemGroupAccessor;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.CreativeModeTab;
 
 import java.util.HashMap;
@@ -14,10 +16,12 @@ public class FabricCreativeTabUtils {
         int TABS_PER_PAGE = 10;
         int count = 0;
 
+        CreativeModeTab OP_TAB = BuiltInRegistries.CREATIVE_MODE_TAB.get(CreativeModeTabsAccessor.getOpBlockTab());
+
         for (CreativeModeTab tab : tabs) {
             final FabricItemGroup fabricItemGroup = (FabricItemGroup) tab;
 
-            if (FabricCreativeGuiComponents.COMMON_GROUPS.contains(tab)) {
+            if (FabricCreativeGuiComponents.COMMON_GROUPS.contains(tab) || tab == OP_TAB) {
                 fabricItemGroup.setPage(0);
                 continue;
             }
