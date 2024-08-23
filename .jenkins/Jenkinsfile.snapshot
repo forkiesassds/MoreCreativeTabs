@@ -1,5 +1,5 @@
-def projectName = "CraterLib";
-def projectIcon = "https://cdn.modrinth.com/data/Nn8Wasaq/a172c634683a11a2e9ae593e56eba7885743bb44.png";
+def projectName = "MoreCreative Tabs";
+def projectIcon = "https://cdn.nightbloom.cc/data/morecreativetabs/images/icon.png";
 def JDK = "17";
 def majorMc = "1.20";
 def modLoaders = "forge|fabric|quilt";
