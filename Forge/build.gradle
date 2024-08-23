@@ -27,3 +27,31 @@ preRunClient.enabled = false
 tasks.withType(JavaCompile).configureEach {
     source(project(":Common").sourceSets.main.allSource)
 }
+
+publisher {
+    apiKeys {
+        modrinth(System.getenv("MODRINTH_TOKEN"))
+        curseforge(System.getenv("CURSE_TOKEN"))
+        nightbloom(System.getenv("PLATFORM_KEY"))
+    }
+
+    setCurseID(curse_id)
+    setModrinthID(modrinth_id)
+    setNightbloomID("morecreativetabs")
+    setVersionType("release")
+    setChangelog("https://raw.githubusercontent.com/hypherionmc/changelogs/main/mct/changelog-forge.md")
+    setProjectVersion("${minecraft_version}-${project.version}")
+    setDisplayName("[FORGE 1.20/1] CraterLib - ${project.version}")
+    setGameVersions("1.20", "1.20.1")
+    setLoaders("forge")
+    setArtifact(remapJar)
+    setCurseEnvironment("client")
+
+    modrinthDepends {
+        required("fabric-api")
+    }
+
+    curseDepends {
+        required("fabric-api")
+    }
+}
