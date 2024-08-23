@@ -3,6 +3,7 @@ package me.hypherionmc.morecreativetabs.mixin;
 import me.hypherionmc.morecreativetabs.client.impl.FabricCreativeTabUtils;
 import me.hypherionmc.morecreativetabs.client.tabs.CustomCreativeTabRegistry;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
@@ -41,6 +42,17 @@ public abstract class FabricCreativeTabsMixin {
     private static void injectValidation(CallbackInfo ci) {
         ci.cancel();
         FabricCreativeTabUtils.validateTabs(CustomCreativeTabRegistry.INSTANCE.sortedTabs());
+    }
+
+    // Supplementaries crashes the game with our tabs, since they are not registered (they are fake tabs)
+    // Work around to return the registered tabs only
+    @Inject(method = "tabs", at = @At("RETURN"), cancellable = true)
+    private static void injectTabsCompat(CallbackInfoReturnable<List<CreativeModeTab>> cir) {
+        String thread = Thread.currentThread().getStackTrace()[3].getClassName();
+
+        if (!thread.isEmpty() && thread.toLowerCase().contains("supplementaries") && thread.toLowerCase().contains("modcreativetabs")) {
+            cir.setReturnValue(BuiltInRegistries.CREATIVE_MODE_TAB.stream().filter(CreativeModeTab::shouldDisplay).toList());
+        }
     }
 
     @Inject(method = "tryRebuildTabContents", at = @At("HEAD"))
