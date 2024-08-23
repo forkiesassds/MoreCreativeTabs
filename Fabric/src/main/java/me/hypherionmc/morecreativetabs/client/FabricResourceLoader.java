@@ -10,7 +10,6 @@ import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Map;
 
 /**
@@ -29,7 +28,7 @@ public class FabricResourceLoader implements SimpleSynchronousResourceReloadList
     @Override
     public void onResourceManagerReload(@NotNull ResourceManager resourceManager) {
         if (!hasRun) {
-            CustomCreativeTabRegistry.tabs_before = new ArrayList<>(BuiltInRegistries.CREATIVE_MODE_TAB.stream().toList());
+            CustomCreativeTabRegistry.INSTANCE.setVanillaTabs(BuiltInRegistries.CREATIVE_MODE_TAB.stream().toList());
             reloadTabs();
             hasRun = true;
         } else {
@@ -42,7 +41,7 @@ public class FabricResourceLoader implements SimpleSynchronousResourceReloadList
      */
     public static void reloadTabs() {
         ModConstants.logger.info("Checking for custom creative tabs");
-        CustomCreativeTabRegistry.clearTabs();
+        CustomCreativeTabRegistry.INSTANCE.clearTabs();
         ResourceManager manager = Minecraft.getInstance().getResourceManager();
         Map<ResourceLocation, Resource> customTabs = manager.listResources("morecreativetabs",
                 path -> path.getPath().endsWith(".json") && !path.getPath().contains("disabled_tabs")
@@ -52,13 +51,13 @@ public class FabricResourceLoader implements SimpleSynchronousResourceReloadList
         Map<ResourceLocation, Resource> orderedTabs = manager.listResources("morecreativetabs", path -> path.getPath().contains("ordered_tabs.json"));
 
         if (!disabledTabs.isEmpty()) {
-            CustomCreativeTabRegistry.loadDisabledTabs(disabledTabs);
+            CustomCreativeTabRegistry.INSTANCE.loadDisabledTabs(disabledTabs);
         }
 
         if (!orderedTabs.isEmpty()) {
-            CustomCreativeTabRegistry.loadOrderedTabs(orderedTabs);
+            CustomCreativeTabRegistry.INSTANCE.loadOrderedTabs(orderedTabs);
         }
 
-        CustomCreativeTabRegistry.processEntries(customTabs);
+        CustomCreativeTabRegistry.INSTANCE.processEntries(customTabs);
     }
 }

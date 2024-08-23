@@ -23,7 +23,7 @@ public class MoreCreativeTabsCommand {
         event.getDispatcher().register(Commands.literal("mct").then(Commands.literal("showTabNames")
                         .then(Commands.argument("enabled", BoolArgumentType.bool()).executes(context -> {
                             boolean enabled = BoolArgumentType.getBool(context, "enabled");
-                            CustomCreativeTabRegistry.showNames = enabled;
+                            CustomCreativeTabRegistry.INSTANCE.setShowTabNames(enabled);
                             context.getSource().sendSuccess(() -> enabled ? Component.literal("Showing tab registry names") : Component.literal("Showing tab names"), true);
                             return 1;
                         }))).then(Commands.literal("reloadTabs").executes(context -> {

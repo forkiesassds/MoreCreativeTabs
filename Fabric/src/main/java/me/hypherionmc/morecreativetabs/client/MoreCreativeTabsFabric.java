@@ -27,7 +27,7 @@ public class MoreCreativeTabsFabric implements ClientModInitializer {
             ClientCommandManager.getActiveDispatcher().register(literal("mct").then(literal("showTabNames")
                             .then(argument("enabled", bool()).executes(context -> {
                                 boolean enabled = BoolArgumentType.getBool(context, "enabled");
-                                CustomCreativeTabRegistry.showNames = enabled;
+                                CustomCreativeTabRegistry.INSTANCE.setShowTabNames(enabled);
                                 context.getSource().sendFeedback(enabled ? Component.literal("Showing tab registry names") : Component.literal("Showing tab names"));
                                 return 1;
                             }))).then(literal("reloadTabs").executes(ctx -> {

@@ -1,6 +1,6 @@
 package me.hypherionmc.morecreativetabs.utils;
 
-import me.hypherionmc.morecreativetabs.client.data.CustomCreativeTab;
+import me.hypherionmc.morecreativetabs.client.data.CustomCreativeTabJsonHelper;
 import me.hypherionmc.morecreativetabs.client.tabs.CustomCreativeTabRegistry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -15,35 +15,27 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 
-/**
- * @author HypherionSA
- * Utility class to help when working with creative tabs
- */
 public class CreativeTabUtils {
 
-    /**
-     * Helper Method to create a Tab Icon from the JSON file. Used to remove duplicated code between Forge/Fabric
-     * @param json - The JSON class of the loaded Tab JSON
-     * @return - Returns an ItemStack or Empty ItemStack
-     */
-    public static ItemStack makeTabIcon(CustomCreativeTab json) {
+    public static Supplier<ItemStack> makeTabIcon(CustomCreativeTabJsonHelper json) {
         AtomicReference<ItemStack> icon = new AtomicReference<>(ItemStack.EMPTY);
-        CustomCreativeTab.TabIcon tabIcon = new CustomCreativeTab.TabIcon();
+        CustomCreativeTabJsonHelper.TabIcon tabIcon = new CustomCreativeTabJsonHelper.TabIcon();
 
-        if (json.tab_stack != null) {
-            tabIcon = json.tab_stack;
+        if (json.getTabIcon() != null) {
+            tabIcon = json.getTabIcon();
         }
 
         /* Resolve the Icon from the Item Registry */
-        CustomCreativeTab.TabIcon finalTabIcon = tabIcon;
-        ItemStack stack = getItemStack(tabIcon.name);
+        CustomCreativeTabJsonHelper.TabIcon finalTabIcon = tabIcon;
+        ItemStack stack = getItemStack(tabIcon.getName());
 
         if (!stack.isEmpty()) {
-            if (finalTabIcon.nbt != null) {
+            if (finalTabIcon.getNbt() != null) {
                 CompoundTag tag = new CompoundTag();
                 try {
-                    tag = TagParser.parseTag(finalTabIcon.nbt);
+                    tag = TagParser.parseTag(finalTabIcon.getNbt());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -55,24 +47,14 @@ public class CreativeTabUtils {
                 icon.set(stack);
             }
         }
-        return icon.get();
+        return icon::get;
     }
 
-    /**
-     * Get the item stack from the Minecraft Registry
-     * @param jsonItem - The Item JSON object
-     * @return - The item if found, or return an empty item
-     */
     public static ItemStack getItemStack(String jsonItem) {
         Optional<Item> itemOptional = BuiltInRegistries.ITEM.getOptional(new ResourceLocation(jsonItem));
-        return itemOptional.map(ItemStack::new).orElse(ItemStack.EMPTY);
+        return itemOptional.map(Item::getDefaultInstance).orElse(ItemStack.EMPTY);
     }
 
-    /**
-     * Prefix Custom Tab names with morecreativetabs to avoid Lang Key conflicts
-     * @param tabName - The name of the tab from the JSON
-     * @return - Returns `morecreativetabs.tabname`
-     */
     public static String prefix(String tabName) {
         return String.format("%s.%s", "morecreativetabs", tabName);
     }
@@ -84,11 +66,6 @@ public class CreativeTabUtils {
         return component.getString();
     }
 
-    /**
-     * Convert Resource Location into String for processing replacement tabs
-     * @param input - The PATH section of a ResourceLocation
-     * @return - The tab name in format `itemGroup.name` or `name`
-     */
     public static String fileToTab(String input) {
         input = input.replace("morecreativetabs/", "");
         input = input.replace("morecreativetabs", "");
@@ -97,19 +74,13 @@ public class CreativeTabUtils {
         return input;
     }
 
-    /**
-     * Helper method to detect if a Custom Tab is a replacement of an existing tab
-     * @param tabName - The "recipeFolderName" of the tab to find
-     * @return - An optional containing the tab data
-     */
-    public static Optional<Pair<CustomCreativeTab, List<ItemStack>>> replacementTab(String tabName) {
-        if (CustomCreativeTabRegistry.replaced_tabs.containsKey(tabName)) {
-            return Optional.of(CustomCreativeTabRegistry.replaced_tabs.get(tabName));
+    public static Optional<Pair<CustomCreativeTabJsonHelper, List<ItemStack>>> replacementTab(String tabName) {
+        if (CustomCreativeTabRegistry.INSTANCE.getReplacedTabs().containsKey(tabName)) {
+            return Optional.of(CustomCreativeTabRegistry.INSTANCE.getReplacedTabs().get(tabName));
         }
-        if (CustomCreativeTabRegistry.replaced_tabs.containsKey(tabName.toLowerCase())) {
-            return Optional.of(CustomCreativeTabRegistry.replaced_tabs.get(tabName.toLowerCase()));
+        if (CustomCreativeTabRegistry.INSTANCE.getReplacedTabs().containsKey(tabName.toLowerCase())) {
+            return Optional.of(CustomCreativeTabRegistry.INSTANCE.getReplacedTabs().get(tabName.toLowerCase()));
         }
         return Optional.empty();
     }
-
 }

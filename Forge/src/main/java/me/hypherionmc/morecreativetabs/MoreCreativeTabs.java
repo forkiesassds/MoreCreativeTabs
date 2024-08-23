@@ -25,11 +25,12 @@ public class MoreCreativeTabs {
 
     public MoreCreativeTabs() {
         ModLoadingContext.get().registerExtensionPoint(IExtensionPoint.DisplayTest.class, () -> new IExtensionPoint.DisplayTest(() -> "", (a, b) -> true));
+       // CustomCreativeTabRegistry.INSTANCE.setForge(true);
     }
 
     public static void reloadResources() {
         if (!hasRun) {
-            CustomCreativeTabRegistry.tabs_before = new ArrayList<>(BuiltInRegistries.CREATIVE_MODE_TAB.stream().toList());
+            CustomCreativeTabRegistry.INSTANCE.setVanillaTabs(new ArrayList<>(BuiltInRegistries.CREATIVE_MODE_TAB.stream().toList()));
             reloadTabs();
             hasRun = true;
         } else {
@@ -42,7 +43,7 @@ public class MoreCreativeTabs {
      */
     private static void reloadTabs() {
         ModConstants.logger.info("Checking for custom creative tabs");
-        CustomCreativeTabRegistry.clearTabs();
+        CustomCreativeTabRegistry.INSTANCE.clearTabs();
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
             ResourceManager manager = Minecraft.getInstance().getResourceManager();
             Map<ResourceLocation, Resource> customTabs = manager.listResources("morecreativetabs",
@@ -53,14 +54,14 @@ public class MoreCreativeTabs {
             Map<ResourceLocation, Resource> orderedTabs = manager.listResources("morecreativetabs", path -> path.getPath().contains("ordered_tabs.json"));
 
             if (!disabledTabs.isEmpty()) {
-                CustomCreativeTabRegistry.loadDisabledTabs(disabledTabs);
+                CustomCreativeTabRegistry.INSTANCE.loadDisabledTabs(disabledTabs);
             }
 
             if (!orderedTabs.isEmpty()) {
-                CustomCreativeTabRegistry.loadOrderedTabs(orderedTabs);
+                CustomCreativeTabRegistry.INSTANCE.loadOrderedTabs(orderedTabs);
             }
 
-            CustomCreativeTabRegistry.processEntries(customTabs);
+            CustomCreativeTabRegistry.INSTANCE.processEntries(customTabs);
         });
     }
 }

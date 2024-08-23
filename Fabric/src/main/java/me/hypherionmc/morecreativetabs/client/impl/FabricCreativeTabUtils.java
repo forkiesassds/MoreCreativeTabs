@@ -1,31 +1,26 @@
-package me.hypherionmc.morecreativetabs.mixin;
+package me.hypherionmc.morecreativetabs.client.impl;
 
-import me.hypherionmc.morecreativetabs.client.tabs.CustomCreativeTabRegistry;
 import net.fabricmc.fabric.impl.client.itemgroup.FabricCreativeGuiComponents;
 import net.fabricmc.fabric.impl.itemgroup.FabricItemGroup;
 import net.fabricmc.fabric.mixin.itemgroup.ItemGroupAccessor;
 import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.CreativeModeTabs;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.HashMap;
-import java.util.stream.Stream;
+import java.util.List;
 
-@Mixin(value = CreativeModeTabs.class, priority = 0)
-public class FabricCreativeModeTabsMixin {
+public class FabricCreativeTabUtils {
 
-    @Inject(method = "validate", at = @At("HEAD"), cancellable = true)
-    private static void injectCheckTabs(CallbackInfo ci) {
-        ci.cancel();
-        int TABS_PER_PAGE = 14;
+    public static void validateTabs(List<CreativeModeTab> tabs) {
+        int TABS_PER_PAGE = 10;
         int count = 0;
 
-        for (CreativeModeTab tab : CustomCreativeTabRegistry.current_tabs) {
+        for (CreativeModeTab tab : tabs) {
             final FabricItemGroup fabricItemGroup = (FabricItemGroup) tab;
+
+            if (FabricCreativeGuiComponents.COMMON_GROUPS.contains(tab)) {
+                fabricItemGroup.setPage(0);
+                continue;
+            }
 
             final ItemGroupAccessor itemGroupAccessor = (ItemGroupAccessor) tab;
             fabricItemGroup.setPage((count / TABS_PER_PAGE));
@@ -41,7 +36,7 @@ public class FabricCreativeModeTabsMixin {
         record ItemGroupPosition(CreativeModeTab.Row row, int column, int page) { }
         var map = new HashMap<ItemGroupPosition, String>();
 
-        for (CreativeModeTab tab : CustomCreativeTabRegistry.current_tabs) {
+        for (CreativeModeTab tab : tabs) {
             final FabricItemGroup fabricItemGroup = (FabricItemGroup) tab;
             final String displayName = tab.getDisplayName().getString();
             final var position = new ItemGroupPosition(tab.row(), tab.column(), fabricItemGroup.getPage());
@@ -51,12 +46,6 @@ public class FabricCreativeModeTabsMixin {
                 throw new IllegalArgumentException("Duplicate position: (%s) for item groups %s vs %s".formatted(position, displayName, existingName));
             }
         }
-
-        FabricCreativeGuiComponents.COMMON_GROUPS.clear();
     }
 
-    @Inject(method = "streamAllTabs", at = @At("RETURN"), cancellable = true)
-    private static void injectTabs(CallbackInfoReturnable<Stream<CreativeModeTab>> cir) {
-        cir.setReturnValue(CustomCreativeTabRegistry.current_tabs.stream());
-    }
 }

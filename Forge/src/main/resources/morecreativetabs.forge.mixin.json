@@ -6,18 +6,16 @@
   "mixins": [
   ],
   "client": [
-    "ForgeCreativeInventoryScreenMixin",
-    "ForgeCreativeModeTabRegistryMixin",
-    "ForgeCreativeRegistryMixin",
-    "ForgeCreativeTabMixin",
+    "ForgeCreativeModeInventoryMixin",
+    "ForgeCreateTabMixin",
+    "ForgeCreativeTabRegistryMixin",
     "ForgeCreativeTabsMixin",
     "ForgeCreativeTabsScreenPageMixin",
     "ForgeReloadableResourceManagerMixin",
-    "accessor.ForgeCreativeModeTabRegistryAccessor"
+    "accessor.ForceCreativeTabAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
-  },
-  "refmap": "morecreativetabs.refmap.json"
+  }
 }
 

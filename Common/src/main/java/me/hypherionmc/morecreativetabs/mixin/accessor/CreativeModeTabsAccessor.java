@@ -1,4 +1,4 @@
-package me.hypherionmc.morecreativetabs.mixin.accessors;
+package me.hypherionmc.morecreativetabs.mixin.accessor;
 
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
@@ -14,28 +14,23 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 public interface CreativeModeTabsAccessor {
 
     @Accessor("INVENTORY")
-    public static ResourceKey<CreativeModeTab> getInventoryTab() {
+    static ResourceKey<CreativeModeTab> getInventoryTab() {
         throw new AssertionError();
     }
 
     @Accessor("HOTBAR")
-    public static ResourceKey<CreativeModeTab> getHotbarTab() {
+    static ResourceKey<CreativeModeTab> getHotbarTab() {
         throw new AssertionError();
     }
 
     @Accessor("SEARCH")
-    public static ResourceKey<CreativeModeTab> getSearchTab() {
+    static ResourceKey<CreativeModeTab> getSearchTab() {
         throw new AssertionError();
     }
 
     @Accessor("OP_BLOCKS")
-    public static ResourceKey<CreativeModeTab> getOpBlockTab() {
+    static ResourceKey<CreativeModeTab> getOpBlockTab() {
         throw new AssertionError();
     }
-
-    /*@Accessor("TABS")
-    public static ResourceKey<CreativeModeTab> getOldTabs() {
-        throw new AssertionError();
-    }*/
 
 }

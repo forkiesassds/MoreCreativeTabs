@@ -1,67 +1,80 @@
 plugins {
-    id "io.github.pacifistmc.forgix" version "1.2.6"
-    id "me.hypherionmc.modutils.modpublisher" version "1.0.3"
+    id 'java'
+    //id "io.github.pacifistmc.forgix" version "1.2.6"
+    //id "me.hypherionmc.modutils.modpublisher" version "1.0.3"
+    id "xyz.wagyourtail.unimined" version "1.2.4" apply false
+    id "com.hypherionmc.modutils.orion" version "1.0.+"
 }
 
-// Jenkins
-ext {
-    release = project.properties['release'] ?: false
-}
+orion.setup {
+    multiProject = true
+    enableMirrorMaven = true
+    enableReleasesMaven = true
 
-def version_base = "${project.base_version}"
-def final_ver = "${version_base}.${project.version_patch}"
+    dopplerToken = System.getenv("DOPPLER_KEY")
 
-if (System.getenv('BUILD_NUMBER') != null && project.release == false) {
-    final_ver = version_base + "." + System.getenv('BUILD_NUMBER') + "d"
-}
-
-forgix {
-    group = project.group
-    mergedJarName = "${mod_name}-combo-${minecraft_version}-${final_ver}.jar"
-    outputDir = "artifacts/merged"
-
-    forge {
-        projectName = "Forge"
-
-        mixin "${mod_id}.mixin.json"
-        mixin "${mod_id}.forge.mixin.json"
-    }
-
-    fabric {
-        projectName = "Fabric"
+    versioning {
+        var relType = project.properties["releaseType"] ?: "${release_type}"
+        identifier("${relType}")
     }
 }
+
+group = project_group
+
+/*forgix {
+        group = project.group
+        mergedJarName = "${mod_name}-combo-${minecraft_version}-${final_ver}.jar"
+        outputDir = "artifacts/merged"
+
+        forge {
+            projectName = "Forge"
+
+            mixin "${mod_id}.mixin.json"
+            mixin "${mod_id}.forge.mixin.json"
+        }
+
+        fabric {
+            projectName = "Fabric"
+        }
+    }*/
 
 subprojects {
+    apply plugin: "xyz.wagyourtail.unimined"
     apply plugin: 'java'
     java.toolchain.languageVersion = JavaLanguageVersion.of(17)
-    version = final_ver
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        compileOnly("org.projectlombok:lombok:${lombok}")
+        annotationProcessor("org.projectlombok:lombok:${lombok}")
+    }
 
     jar {
-        from(rootProject.file("LICENSE")) {
-            rename { "${it}_${mod_name}" }
-        }
         manifest {
             attributes([
-                'Specification-Title'     : mod_name,
-                'Specification-Vendor'    : mod_author,
-                'Specification-Version'   : project.jar.archiveVersion,
-                'Implementation-Title'    : project.name,
-                'Implementation-Version'  : project.jar.archiveVersion,
-                'Implementation-Vendor'   : mod_author,
-                'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
-                'Timestamp'               : System.currentTimeMillis(),
-                'Built-On-Java'           : "${System.getProperty('java.vm.version')} (${System.getProperty('java.vm.vendor')})",
-                'Built-On-Minecraft'      : minecraft_version
+                    'Specification-Title'     : mod_name,
+                    'Specification-Vendor'    : mod_author,
+                    'Specification-Version'   : project.jar.archiveVersion,
+                    'Implementation-Title'    : project.name,
+                    'Implementation-Version'  : project.jar.archiveVersion,
+                    'Implementation-Vendor'   : mod_author,
+                    'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+                    'Timestamp'               : System.currentTimeMillis(),
+                    'Built-On-Java'           : "${System.getProperty('java.vm.version')} (${System.getProperty('java.vm.vendor')})",
+                    'Built-On-Minecraft'      : minecraft_version
             ])
         }
     }
 
-    repositories {
-        mavenCentral()
-        maven {
-            name = 'Sponge / Mixin'
-            url = 'https://repo.spongepowered.org/repository/maven-public/'
+    unimined.minecraft(sourceSets.main, true) {
+        version minecraft_version
+
+        mappings {
+            mojmap()
+            devNamespace "mojmap"
         }
     }
 
@@ -70,30 +83,27 @@ subprojects {
         it.options.release = 17
     }
 
-    tasks.withType(GenerateModuleMetadata) {
+    tasks.withType(GenerateModuleMetadata).configureEach {
         enabled = false
     }
+}
 
-    task preClean {
-        delete "$rootDir/artifacts"
+/*publisher {
+        apiKeys {
+            curseforge = System.getenv("CURSE_TOKEN")
+            modrinth = System.getenv("MODRINTH_TOKEN")
+        }
+
+        curseID = curse_id
+        modrinthID = modrinth_id
+        versionType = rel_type
+        changelog = rootProject.file(changelog_file)
+        version = "${minecraft_version}-${final_ver}"
+        displayName = "[1.20.x] MoreCreativeTabs - ${final_ver}"
+        gameVersions = ["1.20", "1.20.1"]
+        loaders = ["forge", "fabric", "quilt"]
+        artifact = forgix.getOutputDir() + "/" + forgix.getMergedJarName()
     }
 }
 
-publisher {
-    apiKeys {
-        curseforge = System.getenv("CURSE_TOKEN")
-        modrinth = System.getenv("MODRINTH_TOKEN")
-    }
-
-    curseID = curse_id
-    modrinthID = modrinth_id
-    versionType = rel_type
-    changelog = rootProject.file(changelog_file)
-    version = "${minecraft_version}-${final_ver}"
-    displayName = "[1.20.x] MoreCreativeTabs - ${final_ver}"
-    gameVersions = ["1.20", "1.20.1"]
-    loaders = ["forge", "fabric", "quilt"]
-    artifact = forgix.getOutputDir() + "/" + forgix.getMergedJarName()
-}
-
-publishMod.dependsOn(mergeJars)
+publishMod.dependsOn(mergeJars)*/

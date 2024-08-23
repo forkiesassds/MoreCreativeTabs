@@ -1,11 +1,17 @@
 package me.hypherionmc.morecreativetabs.client.data;
 
+import com.google.gson.annotations.SerializedName;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import java.util.ArrayList;
 
-/**
- * @author HypherionSA
- * Gson Helper class for loading disabled tabs
- */
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
 public class DisabledTabsJsonHelper {
-    public ArrayList<String> disabled_tabs;
+
+    @SerializedName("disabled_tabs")
+    private ArrayList<String> disabledTabs;
 }
