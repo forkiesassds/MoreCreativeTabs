@@ -1,0 +1,29 @@
+dependencies {
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+
+    implementation project(":common")
+}
+
+unimined.minecraft {
+    fabric {
+        loader fabric_loader
+        accessWidener(file("src/main/resources/morecreative.accesswidener"))
+    }
+}
+
+preRunClient.enabled = false
+
+processResources {
+    from project(":common").sourceSets.main.resources
+    def buildProps = project.properties.clone()
+
+    filesMatching(['fabric.mod.json']) {
+        expand buildProps
+    }
+}
+
+compileTestJava.enabled = false
+
+tasks.withType(JavaCompile).configureEach {
+    source(project(":common").sourceSets.main.allSource)
+}

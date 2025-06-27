@@ -1,5 +1,3 @@
-archivesBaseName = "${mod_name.replace(" ", "")}-Common-${minecraft_version}"
-
 dependencies {
 
 }

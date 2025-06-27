@@ -1,0 +1,27 @@
+dependencies {
+    // Do not edit or remove
+    implementation project(":common")
+}
+
+unimined.minecraft {
+    minecraftForge {
+        loader forge_version
+        mixinConfig("${mod_id}.mixin.json", "${mod_id}.forge.mixin.json")
+    }
+}
+
+processResources {
+    from project(":common").sourceSets.main.resources
+    def buildProps = project.properties.clone()
+
+    filesMatching("META-INF/mods.toml") {
+        expand buildProps
+    }
+}
+
+compileTestJava.enabled = false
+preRunClient.enabled = false
+
+tasks.withType(JavaCompile).configureEach {
+    source(project(":common").sourceSets.main.allSource)
+}
