@@ -89,7 +89,7 @@ public abstract class CreativeModeTabMixin {
     @Inject(method = "getIconItem", at = @At("RETURN"), cancellable = true)
     private void injectIcon(CallbackInfoReturnable<ItemStack> cir) {
         CreativeTabUtils.replacementTab(convertName(getTabKey(this.displayName))).ifPresent(tabData -> {
-            ItemStack stack = CreativeTabUtils.makeTabIcon(tabData.getLeft()).get();
+            ItemStack stack = tabData.getLeft().tabIcon();
             if (!stack.isEmpty()) {
                 cir.setReturnValue(stack);
             }

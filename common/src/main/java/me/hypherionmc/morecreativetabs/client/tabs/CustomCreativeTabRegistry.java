@@ -75,7 +75,7 @@ public class CustomCreativeTabRegistry {
                 } else {
                     CreativeModeTab.Builder builder = new CreativeModeTab.Builder(null, -1);
                     builder.title(Component.translatable(prefix(json.tabName())));
-                    builder.icon(makeTabIcon(json));
+                    builder.icon(json::tabIcon);
 
                     if (json.tabBackground() != null)
                         builder.backgroundTexture(json.tabBackground());

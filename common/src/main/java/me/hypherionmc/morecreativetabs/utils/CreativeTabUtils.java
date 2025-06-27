@@ -18,16 +18,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 public class CreativeTabUtils {
-
-    public static Supplier<ItemStack> makeTabIcon(CustomCreativeTabJsonHelper json) {
-        return json::tabIcon;
-    }
-
-    public static ItemStack getItemStack(String jsonItem) {
-        Optional<Item> itemOptional = BuiltInRegistries.ITEM.getOptional(ResourceLocation.parse(jsonItem));
-        return itemOptional.map(Item::getDefaultInstance).orElse(ItemStack.EMPTY);
-    }
-
     public static String prefix(String tabName) {
         return String.format("%s.%s", "morecreativetabs", tabName);
     }
