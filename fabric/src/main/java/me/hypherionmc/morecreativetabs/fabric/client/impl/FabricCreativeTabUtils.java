@@ -19,15 +19,15 @@ public class FabricCreativeTabUtils {
         CreativeModeTab OP_TAB = BuiltInRegistries.CREATIVE_MODE_TAB.get(CreativeModeTabsAccessor.getOpBlockTab());
 
         for (CreativeModeTab tab : tabs) {
-            final FabricItemGroupImpl FabricItemGroupImpl = (FabricItemGroupImpl) tab;
+            final FabricItemGroupImpl fabricItemGroup = (FabricItemGroupImpl) tab;
 
             if (FabricCreativeGuiComponents.COMMON_GROUPS.contains(tab) || tab == OP_TAB) {
-                FabricItemGroupImpl.fabric_setPage(0);
+                fabricItemGroup.fabric_setPage(0);
                 continue;
             }
 
             final ItemGroupAccessor itemGroupAccessor = (ItemGroupAccessor) tab;
-            FabricItemGroupImpl.fabric_setPage((count / TABS_PER_PAGE));
+            fabricItemGroup.fabric_setPage((count / TABS_PER_PAGE));
             int pageIndex = count % TABS_PER_PAGE;
             CreativeModeTab.Row row = pageIndex < (TABS_PER_PAGE / 2) ? CreativeModeTab.Row.TOP : CreativeModeTab.Row.BOTTOM;
             itemGroupAccessor.setRow(row);
