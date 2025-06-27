@@ -1,0 +1,26 @@
+dependencies {
+    // Do not edit or remove
+    implementation project(":common")
+}
+
+unimined.minecraft {
+    neoForge {
+        loader neoforge_version
+    }
+}
+
+processResources {
+    from project(":common").sourceSets.main.resources
+    def buildProps = project.properties.clone()
+
+    filesMatching("META-INF/neoforge.mods.toml") {
+        expand buildProps
+    }
+}
+
+compileTestJava.enabled = false
+preRunClient.enabled = false
+
+tasks.withType(JavaCompile).configureEach {
+    source(project(":common").sourceSets.main.allSource)
+}

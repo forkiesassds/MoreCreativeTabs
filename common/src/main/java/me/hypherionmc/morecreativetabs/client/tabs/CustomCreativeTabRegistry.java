@@ -1,21 +1,16 @@
 package me.hypherionmc.morecreativetabs.client.tabs;
 
 import com.google.gson.Gson;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.google.gson.JsonParser;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.JsonOps;
 import me.hypherionmc.morecreativetabs.ModConstants;
 import me.hypherionmc.morecreativetabs.client.data.CustomCreativeTabJsonHelper;
-import me.hypherionmc.morecreativetabs.client.data.DisabledTabsJsonHelper;
-import me.hypherionmc.morecreativetabs.client.data.OrderedTabsJsonHelper;
+import me.hypherionmc.morecreativetabs.client.data.TabConfigJsonHelper;
 import me.hypherionmc.morecreativetabs.mixin.accessor.CreativeModeTabAccessor;
 import me.hypherionmc.morecreativetabs.mixin.accessor.CreativeModeTabsAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.TagParser;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
@@ -28,32 +23,27 @@ import java.util.*;
 
 import static me.hypherionmc.morecreativetabs.utils.CreativeTabUtils.*;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-@Getter
 public class CustomCreativeTabRegistry {
 
     public static final CustomCreativeTabRegistry INSTANCE = new CustomCreativeTabRegistry();
     private final Gson GSON = new Gson();
 
     private final List<CreativeModeTab> vanillaTabs = new ArrayList<>();
-    private final LinkedHashSet<CreativeModeTab> customTabs = new LinkedHashSet<>();
+    public final LinkedHashSet<CreativeModeTab> customTabs = new LinkedHashSet<>();
     private final Set<String> disabledTabs = new HashSet<>();
     private final LinkedHashSet<String> tabOrder = new LinkedHashSet<>();
-    private final LinkedList<CreativeModeTab> currentTabs = new LinkedList<>();
-    private final HashMap<String, Pair<CustomCreativeTabJsonHelper, List<ItemStack>>> replacedTabs = new HashMap<>();
+    public final LinkedList<CreativeModeTab> currentTabs = new LinkedList<>();
+    public final HashMap<String, Pair<CustomCreativeTabJsonHelper, List<ItemStack>>> replacedTabs = new HashMap<>();
 
-    private final HashMap<CreativeModeTab, List<ItemStack>> tabItems = new HashMap<>();
-    private final Set<Item> hiddenItems = new HashSet<>();
+    public final HashMap<CreativeModeTab, List<ItemStack>> tabItems = new HashMap<>();
+    public final Set<Item> hiddenItems = new HashSet<>();
 
-    @Setter
-    private boolean showTabNames = false;
-
-    @Setter
-    private boolean wasReloaded = false;
+    public boolean showTabNames = false;
+    public boolean wasReloaded = false;
 
     private final CreativeModeTab OP_TAB = BuiltInRegistries.CREATIVE_MODE_TAB.get(CreativeModeTabsAccessor.getOpBlockTab());
 
-    public void processEntries(Map<ResourceLocation, Resource> entries) {
+    public void processEntries(/*HolderLookup.Provider lookupProvider, */Map<ResourceLocation, Resource> entries) {
         for (Map.Entry<ResourceLocation, Resource> entry : entries.entrySet()) {
             ResourceLocation location = entry.getKey();
             Resource resource = entry.getValue();
@@ -61,47 +51,34 @@ public class CustomCreativeTabRegistry {
             ModConstants.logger.info("Processing {}", location.toString());
 
             try (InputStream stream = resource.open()) {
-                CustomCreativeTabJsonHelper json = GSON.fromJson(new InputStreamReader(stream), CustomCreativeTabJsonHelper.class);
+                DataResult<CustomCreativeTabJsonHelper> result = CustomCreativeTabJsonHelper.CODEC.decode(/*lookupProvider.createSerializationContext(*/JsonOps.INSTANCE/*)*/,
+                        JsonParser.parseReader(new InputStreamReader(stream))).map(com.mojang.datafixers.util.Pair::getFirst);
+                CustomCreativeTabJsonHelper json = result.result().orElseThrow();
                 ArrayList<ItemStack> stacks = new ArrayList<>();
 
-                if (!json.isTabEnabled())
+                if (!json.tabEnabled())
                     continue;
 
-                for (CustomCreativeTabJsonHelper.TabItem item : json.getTabItems()) {
-                    if (item.getName().equalsIgnoreCase("existing"))
-                        json.setKeepExisting(true);
-
-                    ItemStack stack = getItemStack(item.getName());
+                for (CustomCreativeTabJsonHelper.TabItem item : json.tabItems()) {
+                    ItemStack stack = item.itemStack();
                     if (stack.isEmpty())
                         continue;
 
-                    if (item.isHideOldTab())
+                    if (item.hideOldTab())
                         hiddenItems.add(stack.getItem());
-
-                    if (item.getNbt() != null && !item.getNbt().isEmpty()) {
-                        try {
-                            CompoundTag tag = TagParser.parseTag(item.getNbt());
-                            stack.setTag(tag);
-
-                            if (tag.contains("customName"))
-                                stack.setHoverName(Component.literal(tag.getString("customName")));
-                        } catch (CommandSyntaxException e) {
-                            ModConstants.logger.error("Failed to Process NBT for Item {}", item.getName(), e);
-                        }
-                    }
 
                     stacks.add(stack);
                 }
 
-                if (json.isReplace()) {
+                if (json.replace()) {
                     replacedTabs.put(fileToTab(location.getPath()).toLowerCase(), Pair.of(json, stacks));
                 } else {
                     CreativeModeTab.Builder builder = new CreativeModeTab.Builder(null, -1);
-                    builder.title(Component.translatable(prefix(json.getTabName())));
+                    builder.title(Component.translatable(prefix(json.tabName())));
                     builder.icon(makeTabIcon(json));
 
-                    if (json.getTabBackground() != null && !json.getTabBackground().isEmpty())
-                        builder.backgroundSuffix(json.getTabBackground());
+                    if (json.tabBackground() != null)
+                        builder.backgroundTexture(json.tabBackground());
 
                     CreativeModeTab tab = builder.build();
                     customTabs.add(tab);
@@ -115,26 +92,17 @@ public class CustomCreativeTabRegistry {
         reorderTabs();
     }
 
-    public void loadDisabledTabs(Map<ResourceLocation, Resource> entries) {
+    public void loadTabConfig(Map<ResourceLocation, Resource> entries) {
         entries.forEach((location, resource) -> {
             ModConstants.logger.info("Processing {}", location.toString());
             try (InputStream stream = resource.open()) {
-                DisabledTabsJsonHelper json = new Gson().fromJson(new InputStreamReader(stream), DisabledTabsJsonHelper.class);
-                disabledTabs.addAll(json.getDisabledTabs());
+                DataResult<TabConfigJsonHelper> result = TabConfigJsonHelper.CODEC.decode(JsonOps.INSTANCE,
+                        JsonParser.parseReader(new InputStreamReader(stream))).map(com.mojang.datafixers.util.Pair::getFirst);
+                TabConfigJsonHelper json = result.result().orElseThrow();
+                disabledTabs.addAll(json.disabledTabs());
+                tabOrder.addAll(json.tabOrder());
             } catch (Exception e) {
-                ModConstants.logger.error("Failed to process disabled tabs for {}", location, e);
-            }
-        });
-    }
-
-    public void loadOrderedTabs(Map<ResourceLocation, Resource> resourceMap) {
-        resourceMap.forEach((location, resource) -> {
-            ModConstants.logger.info("Processing {}", location.toString());
-            try (InputStream stream = resource.open()) {
-                OrderedTabsJsonHelper tabs = new Gson().fromJson(new InputStreamReader(stream), OrderedTabsJsonHelper.class);
-                tabOrder.addAll(tabs.getTabs());
-            } catch (Exception e) {
-                ModConstants.logger.error("Failed to process ordered tabs for {}", location, e);
+                ModConstants.logger.error("Failed to process tab config for {}", location, e);
             }
         });
     }
@@ -178,9 +146,9 @@ public class CustomCreativeTabRegistry {
 
         CreativeModeTabAccessor searchTab = (CreativeModeTabAccessor)BuiltInRegistries.CREATIVE_MODE_TAB.get(CreativeModeTabsAccessor.getSearchTab());
         searchTab.setDisplayItemsGenerator((itemDisplayParameters, output) -> {
-            Set<ItemStack> stacks = ItemStackLinkedSet.createTypeAndTagSet();
+            Set<ItemStack> stacks = ItemStackLinkedSet.createTypeAndComponentsSet();
 
-            for (CreativeModeTab tab : getCurrentTabs()) {
+            for (CreativeModeTab tab : currentTabs) {
                 if (tab.getType() == CreativeModeTab.Type.SEARCH)
                     continue;
 

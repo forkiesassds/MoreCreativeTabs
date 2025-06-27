@@ -18,7 +18,7 @@
     "environment": "client",
     "entrypoints": {
       "client": [
-        "me.hypherionmc.morecreativetabs.client.MoreCreativeTabsFabric"
+        "me.hypherionmc.morecreativetabs.fabric.client.MoreCreativeTabsFabric"
       ]
     },
     "mixins": [

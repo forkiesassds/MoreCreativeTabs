@@ -1,0 +1,58 @@
+package me.hypherionmc.morecreativetabs.fabric.client;
+
+import me.hypherionmc.morecreativetabs.ModConstants;
+import me.hypherionmc.morecreativetabs.client.tabs.CustomCreativeTabRegistry;
+import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.packs.resources.ResourceManager;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Map;
+
+/**
+ * @author HypherionSA
+ * Helper class to load our resource packs
+ */
+public class FabricResourceLoader implements SimpleSynchronousResourceReloadListener {
+
+    private boolean hasRun = false;
+
+    @Override
+    public ResourceLocation getFabricId() {
+        return ResourceLocation.fromNamespaceAndPath("morecreativetabs", "tabs");
+    }
+
+    @Override
+    public void onResourceManagerReload(@NotNull ResourceManager resourceManager) {
+        if (!hasRun) {
+            CustomCreativeTabRegistry.INSTANCE.setVanillaTabs(BuiltInRegistries.CREATIVE_MODE_TAB.stream().toList());
+            reloadTabs();
+            hasRun = true;
+        } else {
+            reloadTabs();
+        }
+    }
+
+    /**
+     * Called to reload all creative tabs
+     */
+    public static void reloadTabs() {
+        ModConstants.logger.info("Checking for custom creative tabs");
+        CustomCreativeTabRegistry.INSTANCE.clearTabs();
+        ResourceManager manager = Minecraft.getInstance().getResourceManager();
+        Map<ResourceLocation, Resource> customTabs = manager.listResources("morecreativetabs",
+                path -> path.getPath().endsWith(".json") && !path.getPath().contains("disabled_tabs")
+                        && !path.getPath().contains("ordered_tabs") && !path.getPath().contains("tab_config"));
+
+        Map<ResourceLocation, Resource> tabConfig = manager.listResources("morecreativetabs", path -> path.getPath().contains("tab_config.json"));
+
+        if (!tabConfig.isEmpty()) {
+            CustomCreativeTabRegistry.INSTANCE.loadTabConfig(tabConfig);
+        }
+
+        CustomCreativeTabRegistry.INSTANCE.processEntries(customTabs);
+    }
+}

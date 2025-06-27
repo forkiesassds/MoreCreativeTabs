@@ -10,7 +10,7 @@ subprojects {
     apply plugin: "xyz.wagyourtail.unimined"
     apply plugin: 'java'
 
-    java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+    java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
     version = rootProject.version
     group = rootProject.group
@@ -23,24 +23,22 @@ subprojects {
         mavenCentral()
     }
 
-    dependencies {
-        compileOnly("org.projectlombok:lombok:${lombok}")
-        annotationProcessor("org.projectlombok:lombok:${lombok}")
-    }
-
     unimined.minecraft(sourceSets.main, true) {
         version minecraft_version
 
         mappings {
-            intermediary()
             mojmap()
-            parchment("1.20.1", "2023.09.03")
+            parchment(minecraft_version, parchment_version)
+        }
+
+        minecraftRemapper.config {
+            ignoreConflicts(true)
         }
     }
 
     tasks.withType(JavaCompile).configureEach {
         it.options.encoding = 'UTF-8'
-        it.options.release = 17
+        it.options.release = 21
     }
 
     tasks.withType(GenerateModuleMetadata).configureEach {

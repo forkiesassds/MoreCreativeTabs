@@ -1,55 +1,27 @@
 package me.hypherionmc.morecreativetabs.client.data;
 
-import com.google.gson.annotations.SerializedName;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 
-import java.util.ArrayList;
+import java.util.List;
 
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
-public class CustomCreativeTabJsonHelper {
+public record CustomCreativeTabJsonHelper(boolean tabEnabled, String tabName, ItemStack tabIcon, ResourceLocation tabBackground, boolean replace, List<TabItem> tabItems) {
+    public static final Codec<CustomCreativeTabJsonHelper> CODEC = RecordCodecBuilder.create(i -> i.group(
+            Codec.BOOL.fieldOf("tab_enabled").forGetter(CustomCreativeTabJsonHelper::tabEnabled),
+            Codec.STRING.fieldOf("tab_name").forGetter(CustomCreativeTabJsonHelper::tabName),
+            ItemStack.SINGLE_ITEM_CODEC.fieldOf("tab_stack").forGetter(CustomCreativeTabJsonHelper::tabIcon),
+            ResourceLocation.CODEC.optionalFieldOf("tab_background", null).forGetter(CustomCreativeTabJsonHelper::tabBackground),
+            Codec.BOOL.optionalFieldOf("replace", false).forGetter(CustomCreativeTabJsonHelper::replace),
+            Codec.list(TabItem.CODEC).fieldOf("tab_items").forGetter(CustomCreativeTabJsonHelper::tabItems)
+    ).apply(i, CustomCreativeTabJsonHelper::new));
 
-    @SerializedName("tab_enabled")
-    private boolean tabEnabled;
-
-    @SerializedName("tab_name")
-    private String tabName;
-
-    @SerializedName("tab_stack")
-    private TabIcon tabIcon;
-
-    @SerializedName("tab_background")
-    private String tabBackground;
-
-    private boolean replace;
-
-    @Setter
-    private boolean keepExisting;
-
-    @SerializedName("tab_items")
-    private ArrayList<TabItem> tabItems;
-
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Getter
-    public static class TabItem {
-        private String name;
-
-        @SerializedName("hide_old_tab")
-        private boolean hideOldTab;
-
-        private String nbt;
-    }
-
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Getter
-    public static class TabIcon {
-        private String name;
-        private String nbt;
+    public record TabItem(ItemStack itemStack, boolean hideOldTab, boolean existing) {
+        public static final Codec<TabItem> CODEC = RecordCodecBuilder.create(i -> i.group(
+                ItemStack.SINGLE_ITEM_CODEC.fieldOf("item").forGetter(TabItem::itemStack),
+                Codec.BOOL.optionalFieldOf("hide_old_tab", false).forGetter(TabItem::hideOldTab),
+                Codec.BOOL.optionalFieldOf("existing", false).forGetter(TabItem::existing)
+        ).apply(i, TabItem::new));
     }
 }

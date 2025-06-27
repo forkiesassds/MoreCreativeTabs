@@ -20,38 +20,11 @@ import java.util.function.Supplier;
 public class CreativeTabUtils {
 
     public static Supplier<ItemStack> makeTabIcon(CustomCreativeTabJsonHelper json) {
-        AtomicReference<ItemStack> icon = new AtomicReference<>(ItemStack.EMPTY);
-        CustomCreativeTabJsonHelper.TabIcon tabIcon = new CustomCreativeTabJsonHelper.TabIcon();
-
-        if (json.getTabIcon() != null) {
-            tabIcon = json.getTabIcon();
-        }
-
-        /* Resolve the Icon from the Item Registry */
-        CustomCreativeTabJsonHelper.TabIcon finalTabIcon = tabIcon;
-        ItemStack stack = getItemStack(tabIcon.getName());
-
-        if (!stack.isEmpty()) {
-            if (finalTabIcon.getNbt() != null) {
-                CompoundTag tag = new CompoundTag();
-                try {
-                    tag = TagParser.parseTag(finalTabIcon.getNbt());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-                /* Apply the Stack NBT if needed and apply the icon */
-                stack.setTag(tag);
-                icon.set(stack);
-            } else {
-                icon.set(stack);
-            }
-        }
-        return icon::get;
+        return json::tabIcon;
     }
 
     public static ItemStack getItemStack(String jsonItem) {
-        Optional<Item> itemOptional = BuiltInRegistries.ITEM.getOptional(new ResourceLocation(jsonItem));
+        Optional<Item> itemOptional = BuiltInRegistries.ITEM.getOptional(ResourceLocation.parse(jsonItem));
         return itemOptional.map(Item::getDefaultInstance).orElse(ItemStack.EMPTY);
     }
 
@@ -75,11 +48,11 @@ public class CreativeTabUtils {
     }
 
     public static Optional<Pair<CustomCreativeTabJsonHelper, List<ItemStack>>> replacementTab(String tabName) {
-        if (CustomCreativeTabRegistry.INSTANCE.getReplacedTabs().containsKey(tabName)) {
-            return Optional.of(CustomCreativeTabRegistry.INSTANCE.getReplacedTabs().get(tabName));
+        if (CustomCreativeTabRegistry.INSTANCE.replacedTabs.containsKey(tabName)) {
+            return Optional.of(CustomCreativeTabRegistry.INSTANCE.replacedTabs.get(tabName));
         }
-        if (CustomCreativeTabRegistry.INSTANCE.getReplacedTabs().containsKey(tabName.toLowerCase())) {
-            return Optional.of(CustomCreativeTabRegistry.INSTANCE.getReplacedTabs().get(tabName.toLowerCase()));
+        if (CustomCreativeTabRegistry.INSTANCE.replacedTabs.containsKey(tabName.toLowerCase())) {
+            return Optional.of(CustomCreativeTabRegistry.INSTANCE.replacedTabs.get(tabName.toLowerCase()));
         }
         return Optional.empty();
     }

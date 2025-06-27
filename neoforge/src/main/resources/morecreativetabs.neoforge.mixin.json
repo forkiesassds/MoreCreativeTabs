@@ -1,0 +1,21 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "me.hypherionmc.morecreativetabs.neoforge.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+  ],
+  "client": [
+    "CreativeModeInventoryScreenMixin",
+    "CreativeModeTabMixin",
+    "CreativeModeTabRegistryMixin",
+    "CreativeModeTabsMixin",
+    "CreativeTabsScreenPageMixin",
+    "ReloadableResourceManagerMixin",
+    "accessor.CreativeModeTabAccessor"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
+
