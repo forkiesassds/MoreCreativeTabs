@@ -38,7 +38,7 @@ public abstract class CreativeModeTabsMixin {
         cir.setReturnValue(allTabs().get(0));
     }
 
-    @Inject(method = "validate", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "buildAllTabContents", at = @At("TAIL"), cancellable = true)
     private static void injectValidation(CallbackInfo ci) {
         ci.cancel();
         FabricCreativeTabUtils.validateTabs(CustomCreativeTabRegistry.INSTANCE.sortedTabs());

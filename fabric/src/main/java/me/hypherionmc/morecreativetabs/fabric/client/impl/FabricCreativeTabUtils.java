@@ -41,9 +41,9 @@ public class FabricCreativeTabUtils {
         var map = new HashMap<ItemGroupPosition, String>();
 
         for (CreativeModeTab tab : tabs) {
-            final FabricItemGroupImpl FabricItemGroupImpl = (FabricItemGroupImpl) tab;
+            final FabricItemGroupImpl fabricItemGroup = (FabricItemGroupImpl) tab;
             final String displayName = tab.getDisplayName().getString();
-            final var position = new ItemGroupPosition(tab.row(), tab.column(), FabricItemGroupImpl.fabric_getPage());
+            final ItemGroupPosition position = new ItemGroupPosition(tab.row(), tab.column(), fabricItemGroup.fabric_getPage());
             final String existingName = map.put(position, displayName);
 
             if (existingName != null) {
